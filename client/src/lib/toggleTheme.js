@@ -8,4 +8,11 @@ export const useThemeStore = create((set)=>({
             document.documentElement.setAttribute("data-theme",newTheme);
             return {theme:newTheme};
         }),
-}))
+}));
+
+export const mngCrop = create((set)=>({
+    fileURL:"",
+    finalIMG:null,
+    setURL: (url)=> set(()=>({fileURL:url})),
+    setIMG: (file) => set(()=>({finalIMG:file}))
+}));
