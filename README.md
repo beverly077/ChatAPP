@@ -3,6 +3,7 @@
 **CodeCove** is a modern, anonymous social media platform **built by developers, for developers**.  
 Here, you can connect with people **without revealing your real identity**. Share code snippets, post images of your work, comment on posts, follow other devs, chat, and stay updated with the latest **tech, AI, and software revolutions**.
 
+
 ---
 
 ## 🧑‍💻 Live Demo
@@ -78,3 +79,12 @@ Create a `.env` file in the root and add your secrets (example keys):
  mail_pass=YOUR PASSWORD **(NOT THE GOOGLE ACCOUNT PASSWORD)**
 
  ---
+ ## License
+
+This project is licensed under the **WarChild Source-Available License v1.0 (Non-Commercial)**.  
+
+You may view, use, and share this project for personal or non-commercial purposes.  
+
+See the [LICENSE](./LICENSE) file for full details.  
+
+Contact: loser4113@gmail.com for commercial use or collaboration inquiries.
