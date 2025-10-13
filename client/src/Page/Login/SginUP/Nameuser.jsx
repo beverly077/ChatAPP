@@ -1,22 +1,31 @@
 import { useEffect, useRef, useState } from "react";
-import FaceToggle from "../../../lib/tabToggle";
+import FaceToggle, { toggleMini } from "../../../lib/tabToggle";
 import {toast} from 'react-toastify'
 import verifyZu from "../../../lib/verifyZu";
 import { Loader } from "../../../lib/loader";
 export default function UserNameEl({stoggle}) {
     const {setTab} = FaceToggle();
-    const {setMail,setTUsername,setVTab} = verifyZu();
+    const {setMail,setTUsername,setVTab,emailStatus,setEstatus} = verifyZu();
     const {isTrue,toggleLoader} = Loader();
     const [username,setUsername] = useState("");
     // const [debounceVal,setDeVal] = useState("");
     const [takenList,setList] = useState([]);
     const [cache,setCache] = useState([]);
     const [isLoader,setLoader] = useState(isTrue);
+    const {toggleMiniTab} = toggleMini();
     let divRef = useRef();
     let timeoutId; // define outside function (component scope or useRef)
     useEffect(()=>{
         setLoader(isTrue)
     },[isTrue])
+
+    useEffect(()=>{
+        console.log(emailStatus)
+        if (emailStatus) {
+            setEstatus()
+            toggleMiniTab("pass")
+        }
+    },[emailStatus])
     function checkAv() {
     // remove previous classes before adding a new one
     toggleLoader();

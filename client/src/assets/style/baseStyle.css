@@ -348,7 +348,7 @@ body{
                     background-color: var(--bg-color);
                     opacity: 1;
                     i{
-                        color: var(--text-color);
+                        color: white;
                     }
 }
 .btn{

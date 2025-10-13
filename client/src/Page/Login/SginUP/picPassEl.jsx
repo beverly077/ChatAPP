@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react"
 import { mngCrop } from "../../../lib/toggleTheme";
+import { toggleMini } from "../../../lib/tabToggle";
 export default function CpassEL() {
     const [img,setimg] = useState({})
     const [prevImage,setPrevImg] = useState(null);
     const {finalIMG,setURL} = mngCrop();
+    const {toggleMiniTab} = toggleMini();
     const handleImg = e=>{
         let myFIle = e.target.files[0]
         if (!myFIle) return ;
@@ -34,7 +36,6 @@ export default function CpassEL() {
 
 
     useEffect(()=>{
-        console.log("i am there ",finalIMG)
         if (finalIMG) {
             setimg({file:finalIMG,fileUrl:URL.createObjectURL(finalIMG)});
         }
@@ -66,7 +67,7 @@ export default function CpassEL() {
                             <label htmlFor="password"><i className="bx bx-key">Password</i></label>
                         </div>
                         <div className="inputDiv">
-                            <button className="text-btn">Back</button>
+                            <button className="text-btn" type="button" onClick={()=>toggleMiniTab("user")}>Back</button>
                             <button className="btn">Create Account</button>
                         </div>
                     </form>

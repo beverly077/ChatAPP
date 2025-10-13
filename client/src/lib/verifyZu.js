@@ -4,9 +4,11 @@ const verifyZu = create((set) => ({
   username: "",
   email: "",
   verifyTab: false,
+  emailStatus:false,
 
   setMail: (mail) => set(() => ({ email: mail })),
   setTUsername: (name) => set(() => ({ username: name })),
   setVTab: () => set((state) => ({ verifyTab: !state.verifyTab })),
+  setEstatus: () => set((state) => ({ emailStatus: !state.emailStatus })),
 }));
 export default verifyZu;

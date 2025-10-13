@@ -3,7 +3,7 @@ import verifyZu from '../../../lib/verifyZu';
 import { toast } from 'react-toastify';
 import { Loader } from '../../../lib/loader';
 export default function VerifyEl() {
-    const {email,username,setVTab,setMail} = verifyZu();
+    const {email,username,setVTab,setMail,setEstatus} = verifyZu();
     const {isTrue,toggleLoader} = Loader();
     const [isLoader,setLoader] = useState(isTrue);
     let btnRef = useRef();
@@ -131,6 +131,7 @@ export default function VerifyEl() {
         if (result.err) {
           toast.info(result.err)
         }else{
+          setEstatus()
           toast.success(result.pass)
           handleAnimation();
         }
@@ -148,11 +149,11 @@ export default function VerifyEl() {
                     <form action="" onSubmit={handleSubmit}>
                         <div className="txtDiv flex items-center flex-col p-2 gap-2">
                             <img className='h-[100px]' src="./Logo/CodeCove_Logo.png" alt="" />
-                            <p className='font-light'>We sent a verification Code on.</p>
-                            <span className='text-[12px]'>{email}</span>
+                            <p className='font-light text-skin-text'>We sent a verification Code on.</p>
+                            <span className='text-[12px] text-skin-ptext'>{email}</span>
                             <button className='text-btn' onClick={()=>{setMail(""),setVTab(false)}} type='button'>Change</button>
                         </div>
-                        <div className="otp-container flex justify-center gap-2 m-[2rem 0]">
+                        <div className="otp-container flex justify-center gap-2 m-[2rem 0] text-white">
                            {
                             otp.map((value,index)=>(
                                  <input 
@@ -162,7 +163,7 @@ export default function VerifyEl() {
                                     onChange={(e)=>handleChange(e,index)}
                                     onKeyDown={(e)=>handleKeyDown(e,index)}
                                     ref={(el)=>(inputsRef.current[index] = el)}
-                                 type="text" maxLength={1} className='otp-box h-8 w-8 text-center text-[12px] font-medium  border-2 rounded-lg' />
+                                 type="text" maxLength={1} className='otp-box h-8 w-8 text-center text-[12px] font-medium  border-2 border-skin-ptext rounded-lg' />
                             ))
                            }
                         </div>
