@@ -38,11 +38,11 @@ export default function CropperEL({ prevImg }) {
         const croppedFile = new File([blob], "avatar.png", { type: "image/png" });
         setIMG(croppedFile);
         setURL(""); // close cropper if needed
+        setPorc(false)
       },
       "image/png",
       0.9
     );
-    setPorc(false)
   };
 
   // Load image as HTMLImageElement

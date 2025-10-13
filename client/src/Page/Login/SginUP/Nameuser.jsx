@@ -5,7 +5,7 @@ import verifyZu from "../../../lib/verifyZu";
 import { Loader } from "../../../lib/loader";
 export default function UserNameEl({stoggle}) {
     const {setTab} = FaceToggle();
-    const {setMail,setTUsername,setVTab,emailStatus,setEstatus} = verifyZu();
+    const {setMail,setTUsername,setVTab,emailStatus} = verifyZu();
     const {isTrue,toggleLoader} = Loader();
     const [username,setUsername] = useState("");
     // const [debounceVal,setDeVal] = useState("");
@@ -22,7 +22,6 @@ export default function UserNameEl({stoggle}) {
     useEffect(()=>{
         console.log(emailStatus)
         if (emailStatus) {
-            setEstatus()
             toggleMiniTab("pass")
         }
     },[emailStatus])
