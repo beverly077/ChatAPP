@@ -79,6 +79,7 @@ Create a `.env` file in the root and add your secrets (example keys):
  mail_pass=YOUR PASSWORD **(NOT THE GOOGLE ACCOUNT PASSWORD)**
 
  ---
+ ```
  ## License
 
 This project is licensed under the **WarChild Source-Available License v1.0 (Non-Commercial)**.  

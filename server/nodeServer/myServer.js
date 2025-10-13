@@ -1,6 +1,6 @@
 import express from 'express';
 import chalk from 'chalk';
-import cookieParser from 'cookie-parser'
+import cookieParser from 'cookie-parser';
 let port = 3222;
 import fs from 'fs';
 //import path from 'path';
@@ -15,18 +15,7 @@ myApp.use("/Images",express.static('Images'));
 
 
 // Multer storage config
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = "./Images/Avtar";
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + "-" + file.originalname);
-    }
-});
+const storage = multer.memoryStorage();
 // File filter (only jpg, jpeg, png)
 const fileFilter = (req, file, cb) => {
     const allowed = /jpg|jpeg|png/;

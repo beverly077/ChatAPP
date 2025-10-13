@@ -1,81 +1,95 @@
-import {database} from '../../Controllers/myConnectionFile.js';
+import { database } from '../../Controllers/myConnectionFile.js';
 import bcrypt from 'bcrypt';
+import sharp from 'sharp';
+import { fileTypeFromBuffer } from 'file-type';
 import fs from 'fs';
-import {sendTheMail} from '../../Controllers/nodemailer.js';
-async function checkDublicate(sqlData,username,email) {
-    //console.log(email,username,sqlData)
-    if (sqlData.some(prv=> prv.username === username)) {
-        return username;
-    }else if (sqlData.some(prv=> prv.email === email)) {
-        return email;
-    }
+import path from 'path';
+import { sendTheMail } from '../../Controllers/nodemailer.js';
+
+async function checkDuplicate(sqlData, username, email) {
+  if (sqlData.some(prv => prv.username === username)) return username;
+  if (sqlData.some(prv => prv.email === email)) return email;
 }
 
-async function deleImg(avatar) {
-    try {
-        await fs.promises.unlink("./"+avatar);
-        return {status:true}
-    } catch (error) {
-        return {status:false,err:error.message};
-    }
-}
-export const CreateUser = async (rkv,rspo) => {
-    let {email,password,username} = rkv.body;
-    if (!rkv.file) {
-        return rspo.send({err:"Please set your dp"})
-    }
-    let avatar = "Images/Avtar/"+rkv.file.filename;
-    if( !password || !username || !email || !password.trim() || !username.trim() || !email.trim()) {
-        let rslt = await deleImg(avatar);
-        if (!rslt.status) return rspo.status(501).send({err:rslt.err})
-        return rspo.status(400).send({err:"Please provide peroper information"});
+export const CreateUser = async (rkv, rspo) => {
+  const MAX_WIDTH = 8000;
+  const MAX_HEIGHT = 8000;
+  const MAX_PIXELS = 50_000_000;
+
+  const { email, password, username } = rkv.body;
+  const file = rkv.file;
+
+  if (!file) return rspo.status(400).send({ err: "Please upload an image" });
+
+  try {
+    // 1️⃣ Validate file type
+    const type = await fileTypeFromBuffer(file.buffer);
+    if (!type || !['image/png', 'image/jpg', 'image/jpeg'].includes(type.mime)) {
+      return rspo.status(400).send({ err: "Invalid file type" });
     }
 
-    // if(!/^[A-Z][a-z]+(?: [A-Z][a-z]+)*/.test(name)) {
-    //     let rslt = await deleImg(avatar);
-    //     if (!rslt.status) return rspo.status(501).send({err:rslt.err})
-    //     return rspo.status(400).send({err:"Enter a valid Name"});}
-    
+    // 2️⃣ Validate image dimensions
+    const metaData = await sharp(file.buffer).metadata();
+    if (!metaData.width || !metaData.height) {
+      return rspo.status(400).send({ err: "Can't read image dimensions" });
+    }
     if (
-        //!email.endsWith("@gmail.com") ||
-       !/^[A-Za-z0-9][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)
+      metaData.width > MAX_WIDTH ||
+      metaData.height > MAX_HEIGHT ||
+      metaData.width * metaData.height > MAX_PIXELS
     ) {
-        let rslt = await deleImg(avatar);
-        if (!rslt.status) return rspo.status(501).send({err:rslt.err})
-        return rspo.status(400).send({err:"Please Enter a valid Email"})
+      return rspo.status(413).send({ err: "Image is too large" });
     }
 
-    let [isDublicate] = await connection.query("SELECT username,email FROM USERS WHERE username=? OR email=?",[username,email]);
+    // 3️⃣ Validate user input
+    if (!email?.trim() || !username?.trim() || !password?.trim()) {
+      return rspo.status(400).send({ err: "Please provide proper information" });
+    }
 
-    if (isDublicate.length>0) {
-        let dublicate = await checkDublicate(isDublicate,username,email);
-        let rslt = await deleImg(avatar);
-        if (!rslt.status) return rspo.status(501).send({err:rslt.err})
-        return rspo.status(302).send({err:`${dublicate} Already have an account`});
+    if (!/^[A-Za-z0-9][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) {
+      return rspo.status(400).send({ err: "Invalid email" });
     }
 
     if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/.test(password)) {
-        let rslt = await deleImg(avatar);
-        if (!rslt.status) return rspo.status(501).send({err:rslt.err})
-        return rspo.status(400).send({err:"password length > 5"})
+      return rspo.status(400).send({ err: "Password must be strong (8+ chars, uppercase, number, symbol)" });
     }
-    const otp = Math.floor(100000 + Math.random() * 900000);
-    try {
-        let send = await sendTheMail(
-            email,
-            "Welcome to CodeCove🎉",
-            "wellcome",
-            {username,otp}
-        )
-        // rspo.send({send});
-        let hashPass = await bcrypt.hash(password,10);
-        let createquery="INSERT INTO users (username,email,password,avatar) VALUES (?,?,?,?)";
-        let request = await database.query(createquery,[username,email,hashPass,avatar])
-        rspo.status(201).send({send,pass:"Created",request})
-    } catch (error) {
-        let rslt = await deleImg(avatar);
-        if (!rslt.status) return rspo.status(501).send({err:rslt.err})
-        rspo.status(500).send({err:"something went wrong",details:error.message});
+
+    // 4️⃣ Check duplicates
+    const [existing] = await database.query(
+      "SELECT username,email FROM users WHERE username=? OR email=?",
+      [username, email]
+    );
+    if (existing.length > 0) {
+      const duplicate = await checkDuplicate(existing, username, email);
+      return rspo.status(302).send({ err: `${duplicate} already has an account` });
     }
-    
-}
+
+    // 5️⃣ All validations passed → Save the file
+    const dir = "./Images/Avtar";
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    const avatarFileName = Date.now() + "-" + file.originalname;
+    const avatarPath = path.join(dir, avatarFileName);
+    fs.writeFileSync(avatarPath, file.buffer);
+
+    const avatar = `Images/Avtar/${avatarFileName}`;
+
+    // 6️⃣ Hash password and save user
+    const hashPass = await bcrypt.hash(password, 10);
+    const createQuery = "INSERT INTO users (username,email,password,avatar) VALUES (?,?,?,?)";
+    await database.query(createQuery, [username, email, hashPass, avatar]);
+
+    // Optional: send welcome email
+    // await sendTheMail(email, "Welcome to CodeCove🎉", "Welcome", { username });
+
+    rspo.status(201).send({ msg: "User created successfully" });
+
+  } catch (error) {
+    // If anything fails after saving, delete the file
+    if (rkv.file) {
+      const avatarFileName = `Images/Avtar/${rkv.file.originalname}`;
+      try { fs.unlinkSync(avatarFileName); } catch (err) { console.error(err); }
+    }
+    rspo.status(500).send({ err: "Something went wrong", details: error.message });
+  }
+};
